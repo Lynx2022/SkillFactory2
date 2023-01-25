@@ -36,7 +36,7 @@ News
                 от переменных в Python. Здесь также можно получать доступ к
                 полям объекта модели. Например, здесь мы выводим имя,
                 в следующем столбце описание, и т.д.  -->
-               <td>{{ new.title|censor }}</td>
+               <td><a href="{% url 'post_detail' pk=new.id %}">{{ new.title|censor }}</a></td>
                <td>{{ new.dateCreation }}</td>
                <td>{{ new.text|truncatechars:20|censor }}</td>
            </tr>

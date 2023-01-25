@@ -12,6 +12,15 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger()
+logger.debug('Это дебаг уровень')
+logger.info("Просто информация")
+logger.warning("Опасно")
+logger.error("Ошибка")
+logger.critical("Ваще засада")
+
 
 load_dotenv()
 env_path = Path("NewsPaper\config.env")
@@ -182,3 +191,112 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'cache_files'), # Указываем, куда будем сохранять кэшируемые файлы! Не забываем создать папку cache_files внутри папки с manage.py!
+    }
+}
+
+LOGGING = {'version': 1,
+    'disable_existing_loggers': False,
+    'style' : '{',
+    'formatters' : {
+        'console_debug_' :{'format' : '%(asctime)s %(levelname)s %(message)s'},
+        'console_warning_' : {'format' : '%(asctime)s %(levelname)s %(message)s %(pathname)s'},
+        'console_error_critical_' : {'format' : '%(asctime)s %(levelname)s %(message)s %(pathname)s %(exc_info)s'},
+        'mail_': {'format': '%(asctime)s %(levelname)s - %(message)s - %(pathname)s'},
+        'security_': {'format': '%(asctime)s %(levelname)s - %(module)s - %(message)s'},
+        'general_log_': {'format': '%(asctime)s %(levelname)s - %(module)s - %(message)s'},
+
+    },
+
+        'filters': {
+            'require_debug_true': {'()': 'django.utils.log.RequireDebugTrue'},
+            'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse'},
+        },
+        'handlers': {
+             'console_debug': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'console_debug_',
+                'filters': ['require_debug_true'],
+            },
+            'console_warning': {
+                'level': 'WARNING',
+                'class': 'logging.StreamHandler',
+                'formatter': 'console_warning_',
+            },
+            'console_error_critical': {
+                'level': 'ERROR',
+                'class': 'logging.StreamHandler',
+                'formatter': 'console_error_critical_',
+            },
+            'general_file': {
+                'class': "logging.FileHandler",
+                'filename': "general.log",
+                'level': "INFO",
+                'filters': ['require_debug_false'],
+                'formatter': 'general_log_',
+            },
+            'errors_file': {
+                'class': "logging.FileHandler",
+                'filename': "errors.log",
+                'level': "ERROR",
+                'formatter': 'console_error_critical_',
+            },
+            'security_file': {
+                'class': "logging.FileHandler",
+                'filename': "security.log",
+                'level': "WARNING",
+                'formatter': "security_",
+            },
+            'mail_admins': {
+                'level': 'ERROR',
+                'class': 'django.utils.log.AdminEmailHandler',
+                'filters': ['require_debug_false'],
+                'formatter': 'mail_',
+            },
+        },
+        'loggers': {
+            'console_debug': {
+                'handlers': ['console_debug'],
+                'propagate': True,
+            },
+            'console_warning': {
+                'handlers': ['console_warning'],
+                'propagate': True,
+            },
+            'console_error': {
+                'handlers': ['console_error_critical'],
+                'propagate': True,
+            },
+            'django.request': {
+                'handlers': ['mail_admins', 'errors_file'],
+                'level': 'ERROR',
+                'propagate': False,
+            },
+            'django.server': {
+                'handlers': ['mail_admins', 'errors_file'],
+                'level': 'ERROR',
+                'propagate': False,
+            },
+            'django.db_backends': {
+                'handlers': ['errors_file'],
+                'level': 'ERROR',
+                'propagate': False,
+            },
+            'django.template': {
+                'handlers': ['errors_file'],
+                'level': 'ERROR',
+                'propagate': False,
+            },
+            'django.security': {
+                'handlers': ['security_file'],
+                'level': 'WARNING',
+                'propagate': False,
+            }
+        }
+    }

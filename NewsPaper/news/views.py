@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.views import login_required
 from datetime import timezone, timedelta, datetime
+from django.core.cache import cache
 
 
 class PostList(ListView):
@@ -34,10 +35,21 @@ class PostDetail(DetailView):
     model = Post
     template_name = 'new.html'
     context_object_name = 'new'
+    queryset = Post.objects.all()
+
+    def get_object(self, *args, **kwargs):
+        obj = cache.get(f'new-{self.kwargs["pk"]}',
+                        None)
+
+        if not obj:
+            obj = super().get_object(queryset=self.queryset)
+            cache.set(f'new-{self.kwargs["pk"]}', obj)
+
+        return obj
 
 
 class NewCreate(PermissionRequiredMixin, CreateView):
-    permission_required = ('simpleapp.add_new',)
+    permission_required = ('news.add_new',)
     raise_exception = True
     form_class = NewForm
     model = Post
@@ -50,7 +62,7 @@ class NewCreate(PermissionRequiredMixin, CreateView):
 
 
 class ArticleCreate(PermissionRequiredMixin, CreateView):
-    permission_required = ('simpleapp.add_article',)
+    permission_required = ('news.add_article',)
     raise_exception = True
     form_class = ArticleForm
     model = Post
@@ -63,28 +75,28 @@ class ArticleCreate(PermissionRequiredMixin, CreateView):
 
 
 class NewUpdate(PermissionRequiredMixin, UpdateView):
-    permission_required = ('simpleapp.change_new',)
+    permission_required = ('news.change_new',)
     form_class = NewForm
     model = Post
     template_name = 'new_edit.html'
 
 
 class ArticleUpdate(PermissionRequiredMixin, UpdateView):
-    permission_required = ('simpleapp.change_article',)
+    permission_required = ('news.change_article',)
     form_class = ArticleForm
     model = Post
     template_name = 'article_edit.html'
 
 
-class NewDelete(DeleteView):
-    permission_required = ('simpleapp.delete_new',)
+class NewDelete(PermissionRequiredMixin, DeleteView):
+    permission_required = ('news.delete_new',)
     model = Post
     template_name = 'new_delete.html'
     success_url = reverse_lazy('post_list')
 
 
-class ArticleDelete(DeleteView):
-    permission_required = ('simpleapp.delete_article',)
+class ArticleDelete(PermissionRequiredMixin, DeleteView):
+    permission_required = ('news.delete_article',)
     model = Post
     template_name = 'article_delete.html'
     success_url = reverse_lazy('post_list')

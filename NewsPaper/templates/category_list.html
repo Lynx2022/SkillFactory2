@@ -30,7 +30,7 @@ News
                <td>категория</td>
                <td>автор</td>
 
-               {% if perms.simpleapp.change_new or perms.simpleapp.delete_new %}
+               {% if perms.news.change_new or perms.news.delete_new %}
                <td>Действия</td>
                {% endif %}
 
@@ -39,7 +39,7 @@ News
 
            {% for new in category_news_list %}
            <tr>
-               <td>{{ new.title|censor }}</td>
+               <td><a href="{% url 'post_detail' pk=new.id %}">{{ new.title|censor }}</a></td>
                <td>{{ new.dateCreation }}</td>
                <td>{{ new.text|truncatechars:20|censor }}</td>
                <td>{% for cat in new.category.all %}
